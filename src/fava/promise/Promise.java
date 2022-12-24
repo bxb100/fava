@@ -6,6 +6,9 @@ import fava.monad.Monad;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 /**
  * An instance of {@code Promise<T>} represents a value of type T that may be
@@ -19,10 +22,11 @@ import java.util.Objects;
  * @author dagang.wei (weidagang@gmail.com)
  */
 public class Promise<T> implements Functor<T>, Monad<T> {
+	private final byte[] Lock = new byte[0];
 	protected State state = State.PENDING;
 	protected T value;
 	protected Exception exception;
-	protected ArrayList<Listener<T>> listeners = new ArrayList<Listener<T>>();
+	protected ArrayList<Listener<T>> listeners = new ArrayList<>();
 
 	/**
 	 * Lifts a value into a promise.
@@ -44,6 +48,47 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 		return promise;
 	}
 
+	public static <T> Promise<T> fulfillInAsync(final Callable<T> task, Executor executor) {
+		final Promise<T> promise = new Promise<T>();
+		executor.execute(() -> {
+			try {
+				T value = task.call();
+				promise.notifySuccess(value);
+			} catch (Exception e) {
+				promise.notifyFailure(e);
+			}
+		});
+		return promise;
+	}
+
+	public Promise<T> onSuccess(Consumer<T> consumer) {
+		addListener(new Listener<T>() {
+			@Override
+			public void onSuccess(T value) {
+				consumer.accept(value);
+			}
+
+			@Override
+			public void onFailure(Exception exception) {
+			}
+		});
+		return this;
+	}
+
+	public Promise<T> onFailure(Consumer<Exception> consumer) {
+		addListener(new Listener<T>() {
+			@Override
+			public void onSuccess(T value) {
+			}
+
+			@Override
+			public void onFailure(Exception exception) {
+				consumer.accept(exception);
+			}
+		});
+		return this;
+	}
+
 	/**
 	 * Returns the current state of the promise.
 	 */
@@ -52,39 +97,33 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	}
 
 	/**
-	 * Awaits until the promise is fulfilled or rejected.
+	 * wait until the promise is fulfilled or rejected.
 	 *
 	 * @return the value if succeeded, or null if failed.
 	 */
 	public T await() {
-		while (state == State.PENDING) {
-			try {
-				Thread.sleep(1); //TODO: change the implementation later.
-			} catch (Exception e) {
+
+		synchronized (Lock) {
+			while (state == State.PENDING) {
+				try {
+					Lock.wait();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 			}
 		}
+
 		return state == State.SUCCEEDED ? value : null;
 	}
 
 	/**
 	 * Gets the value of this promise. If the promise failed, this method calls
-	 * {@link failureToValue()} to get the default value.
+	 * {@link fava.promise.Promise#await()} to get the default value.
 	 *
 	 * <p>Precondition: state == SUCCEEDED || state == FAILED
 	 */
 	public T getValue() {
-		assert state == State.PENDING || state == State.FAILED;
-		return state == State.SUCCEEDED ? value : failureToValue();
-	}
-
-	/**
-	 * Returns the exception.
-	 *
-	 * <p>Precondition: state == State.FAILED
-	 */
-	public Exception getException() {
-		assert state == State.FAILED;
-		return exception;
+		return await();
 	}
 
 	/**
@@ -174,12 +213,13 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	 * to be called inside of subclasses.
 	 */
 	protected final void notifySuccess(T value) {
-		assert state == State.PENDING;
-
 		this.value = value;
 		this.state = State.SUCCEEDED;
 		for (Listener<T> listener : listeners) {
 			listener.onSuccess(value);
+		}
+		synchronized (Lock) {
+			Lock.notifyAll();
 		}
 	}
 
@@ -195,20 +235,9 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 		for (Listener<T> listener : listeners) {
 			listener.onFailure(exception);
 		}
-	}
-
-	/**
-	 * Gets the value for the failure case. If the promise failed, the default
-	 * implementation is returning null, but subclasses can override it to return
-	 * any default value or just throw an exception.
-	 *
-	 * <p>Precondition: state == FAILED
-	 *
-	 * @return the corresponding value for the failure.
-	 */
-	protected T failureToValue() {
-		assert state == State.FAILED;
-		return null;
+		synchronized (Lock) {
+			Lock.notifyAll();
+		}
 	}
 
 	/**

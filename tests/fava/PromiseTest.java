@@ -8,8 +8,15 @@ import fava.promise.Promise;
 import fava.promise.Promises;
 import org.junit.Test;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static fava.data.Lists.map;
 import static fava.data.Strings.join;
@@ -176,6 +183,18 @@ public class PromiseTest {
 		assertEquals(
 				liftedAsyncGet1.apply(asyncGet(URL6)).await(),
 				liftedAsyncGet2.apply(asyncGet(URL6)).await());
+	}
+
+	@Test
+	public void testPromise_async() {
+		HttpRequest request = HttpRequest.newBuilder(URI.create("https://google.com")).build();
+		HttpClient client = HttpClient.newBuilder().build();
+		Callable<String> action = () -> client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+
+		System.out.println(Promise.fulfillInAsync(action, Executors.newSingleThreadExecutor())
+				.onSuccess(System.out::println)
+				.onFailure(System.err::println)
+				.await());
 	}
 
 	/**
