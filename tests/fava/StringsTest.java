@@ -1,15 +1,14 @@
 package fava;
 
-import static org.junit.Assert.assertEquals;
-
+import fava.data.Strings;
 import org.junit.Test;
 
-import fava.data.Strings;
+import static org.junit.Assert.assertEquals;
 
 public class StringsTest {
 
-  @Test
-  public void testTimes() {
-    assertEquals("abcabcabc", Strings.times().apply(3).apply("abc"));
-  }
+	@Test
+	public void testTimes() {
+		assertEquals("abcabcabc", Strings.times().apply(3).apply("abc"));
+	}
 }
