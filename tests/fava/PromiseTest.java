@@ -15,7 +15,6 @@ import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import static fava.data.Lists.map;
@@ -26,6 +25,7 @@ import static fava.promise.Promise.unit;
 import static fava.promise.Promises.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class PromiseTest {
 	private static final String URL1 = "http://www.a.com/a.htm";
@@ -191,10 +191,12 @@ public class PromiseTest {
 		HttpClient client = HttpClient.newBuilder().build();
 		Callable<String> action = () -> client.send(request, HttpResponse.BodyHandlers.ofString()).body();
 
-		System.out.println(Promise.fulfillInAsync(action, Executors.newSingleThreadExecutor())
-				.onSuccess(System.out::println)
-				.onFailure(System.err::println)
-				.await());
+		assertNotNull(
+				Promise.fulfillInAsync(action, Executors.newSingleThreadExecutor())
+						.onSuccess(System.out::println)
+						.onFailure(System.err::println)
+						.await()
+		);
 	}
 
 	/**

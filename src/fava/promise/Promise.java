@@ -32,7 +32,7 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	 * Lifts a value into a promise.
 	 */
 	public static <T> Promise<T> unit(T value) {
-		Promise<T> promise = new Promise<T>();
+		Promise<T> promise = new Promise<>();
 		promise.state = State.SUCCEEDED;
 		promise.value = value;
 		return promise;
@@ -42,14 +42,14 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	 * Lifts a failure into a promise.
 	 */
 	public static <T> Promise<T> failure(Exception exception) {
-		Promise<T> promise = new Promise<T>();
+		Promise<T> promise = new Promise<>();
 		promise.state = State.FAILED;
 		promise.exception = exception;
 		return promise;
 	}
 
 	public static <T> Promise<T> fulfillInAsync(final Callable<T> task, Executor executor) {
-		final Promise<T> promise = new Promise<T>();
+		final Promise<T> promise = new Promise<>();
 		executor.execute(() -> {
 			try {
 				T value = task.call();
@@ -62,7 +62,7 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	}
 
 	public Promise<T> onSuccess(Consumer<T> consumer) {
-		addListener(new Listener<T>() {
+		addListener(new Listener<>() {
 			@Override
 			public void onSuccess(T value) {
 				consumer.accept(value);
@@ -76,7 +76,7 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	}
 
 	public Promise<T> onFailure(Consumer<Exception> consumer) {
-		addListener(new Listener<T>() {
+		addListener(new Listener<>() {
 			@Override
 			public void onSuccess(T value) {
 			}
@@ -117,13 +117,12 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	}
 
 	/**
-	 * Gets the value of this promise. If the promise failed, this method calls
-	 * {@link fava.promise.Promise#await()} to get the default value.
+	 * Gets the value of this promise.
 	 *
 	 * <p>Precondition: state == SUCCEEDED || state == FAILED
 	 */
 	public T getValue() {
-		return await();
+		return value;
 	}
 
 	/**
@@ -143,10 +142,10 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 
 	@Override
 	public <R> Promise<R> fmap(IF1<T, R> f) {
-		final Promise<R> promiseR = new Promise<R>() {
+		final Promise<R> promiseR = new Promise<>() {
 		};
 
-		this.addListener(new Listener<T>() {
+		this.addListener(new Listener<>() {
 			@Override
 			public void onSuccess(T value) {
 				promiseR.notifySuccess(f.apply(value));
@@ -164,17 +163,17 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	@Override
 	public <R> Promise<R> bind(IF1<T, ? extends Monad<R>> f) {
 		// promiseR is the composition of "this" promise and "that promise.
-		final Promise<R> promiseR = new Promise<R>() {
+		final Promise<R> promiseR = new Promise<>() {
 		};
 
 		// callback for "this" promise
-		this.addListener(new Listener<T>() {
+		this.addListener(new Listener<>() {
 			@Override
 			public void onSuccess(T value) {
 				Promise<R> that = (Promise<R>) f.apply(value);
 				assert that != null;
 				// callback for "that" promise
-				that.addListener(new Listener<R>() {
+				that.addListener(new Listener<>() {
 					@Override
 					public void onSuccess(R value) {
 						promiseR.notifySuccess(value);
@@ -209,7 +208,7 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	}
 
 	/**
-	 * Fulfills the promise, moves the state from PENDING to SUCCEEDED. It's intended
+	 * Fulfills the promise, moves the state from PENDING to SUCCEED. It's intended
 	 * to be called inside of subclasses.
 	 */
 	protected final void notifySuccess(T value) {
