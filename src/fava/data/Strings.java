@@ -1,10 +1,8 @@
 package fava.data;
 
-import fava.Composing;
 import fava.Currying;
 import fava.Currying.F1;
 import fava.Currying.F2;
-import fava.Flipping;
 import fava.Functions.IF2;
 
 import java.util.Arrays;
@@ -22,21 +20,27 @@ public class Strings {
 	 *
 	 * <p> split :: String -> String -> [String]
 	 */
+	@SuppressWarnings("CommentedOutCode")
 	public static F2<String, String, List<String>> split() {
 
-		/*return new F2<String, String, List<String>>() {
+		return new F2<>() {
 			@Override
 			public List<String> apply(String delimiter, String data) {
 				return Arrays.asList(data.split(delimiter));
 			}
+		};
+
+		/*return new F2<>() {
+			@Override
+			public List<String> apply(String arg1, String arg2) {
+				return Arrays.asList(Flipping.flip(Currying.<String, String, String[]>curry(String::split)).apply(arg1, arg2));
+			}
 		};*/
 
-		IF2<String, String, String[]> stringStringIF2 = String::split;
-
-		return Composing.__(
+		/*return Composing.__(
 				Flipping.flip(Currying.<String, String, String[]>curry(String::split)),
 				Currying.<String[], List<String>>curry(Arrays::asList)
-		);
+		);*/
 	}
 
 	/**
