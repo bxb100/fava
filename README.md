@@ -4,7 +4,7 @@ JDK 11+
 
 # Java Lambda: Method Reference
 
-[from](https://dzone.com/articles/java-lambda-method-reference
+[from](https://dzone.com/articles/java-lambda-method-reference)
 
 | Type                                                                        | Syntax                          | Lambda                                                                         |
 |:----------------------------------------------------------------------------|:--------------------------------|:-------------------------------------------------------------------------------|
