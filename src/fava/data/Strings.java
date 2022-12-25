@@ -24,6 +24,15 @@ public class Strings {
 	 */
 	public static F2<String, String, List<String>> split() {
 
+		/*return new F2<String, String, List<String>>() {
+			@Override
+			public List<String> apply(String delimiter, String data) {
+				return Arrays.asList(data.split(delimiter));
+			}
+		};*/
+
+		IF2<String, String, String[]> stringStringIF2 = String::split;
+
 		return Composing.__(
 				Flipping.flip(Currying.<String, String, String[]>curry(String::split)),
 				Currying.<String[], List<String>>curry(Arrays::asList)
@@ -82,7 +91,7 @@ public class Strings {
 	 */
 	public static F1<List<String>, String> join(final String delimiter) {
 
-		return new F1<List<String>, String>() {
+		return new F1<>() {
 			/**
 			 * @param strings the string list
 			 */
@@ -169,8 +178,6 @@ public class Strings {
 
 	/**
 	 * Curried form of {@link Strings#times(int, String)}.
-	 *
-	 * @return
 	 */
 	public static F2<Integer, String, String> times() {
 		return new F2<>() {
