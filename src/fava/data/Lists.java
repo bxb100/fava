@@ -164,7 +164,7 @@ public class Lists {
 		final ArrayList<R> result = new ArrayList<R>(list.size());
 		// Here we define {@code map} with {@code foldl}, that means {@code fold}
 		// is more fundamental than {@code map} in the level of abstraction.
-		return foldl(Composing._do(f, Lists.append()), result, list);
+		return foldl(Composing.__(f, Lists.append()), result, list);
 	}
 
 	/**

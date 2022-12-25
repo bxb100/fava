@@ -17,7 +17,7 @@ public class ComposingTest {
 	 */
 	@Test
 	public void testCompose() {
-		F1<String, String> f = Composing._do(split(" "), Lists.reverse(), map(toUpperCase()), join("_"));
+		F1<String, String> f = Composing.__(split(" "), Lists.reverse(), map(toUpperCase()), join("_"));
 		assertEquals("JAVA_IN_PROGRAMMING_LOVE_I", f.apply("I love programming in Java"));
 	}
 }

@@ -1,8 +1,10 @@
 package fava.data;
 
+import fava.Composing;
 import fava.Currying;
 import fava.Currying.F1;
 import fava.Currying.F2;
+import fava.Flipping;
 import fava.Functions.IF2;
 
 import java.util.Arrays;
@@ -14,18 +16,18 @@ import java.util.List;
  * @author dagang.wei (weidagang@gmail.com)
  **/
 public class Strings {
+
 	/**
 	 * Curried function for splitting a string by a delimiter.
 	 *
 	 * <p> split :: String -> String -> [String]
 	 */
 	public static F2<String, String, List<String>> split() {
-		return new F2<String, String, List<String>>() {
-			@Override
-			public List<String> apply(String delimiter, String data) {
-				return Arrays.asList(data.split(delimiter));
-			}
-		};
+
+		return Composing.__(
+				Flipping.flip(Currying.<String, String, String[]>curry(String::split)),
+				Currying.<String[], List<String>>curry(Arrays::asList)
+		);
 	}
 
 	/**
@@ -37,16 +39,15 @@ public class Strings {
 		return split().apply(delimiter);
 	}
 
+	public static String concat(String arg1, String arg2) {
+		return arg1 + arg2;
+	}
+
 	/**
 	 * Curried function for concatenating two strings.
 	 */
 	public static F2<String, String, String> concat() {
-		return new F2<String, String, String>() {
-			@Override
-			public String apply(String arg1, String arg2) {
-				return arg1 + arg2;
-			}
-		};
+		return Currying.curry(Strings::concat);
 	}
 
 	/**

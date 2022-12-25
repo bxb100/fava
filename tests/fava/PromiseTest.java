@@ -49,7 +49,7 @@ public class PromiseTest {
 	public void testPromise_fmap() throws Exception {
 		F1<List<String>, List<String>> reverse = Lists.reverse();
 		F1<String, String> toUpperCase = toUpperCase();
-		F1<String, String> convert = Composing._do(split(" "), reverse, map(toUpperCase), join("_"));
+		F1<String, String> convert = Composing.__(split(" "), reverse, map(toUpperCase), join("_"));
 		Promise<String> page2 = asyncGet(URL2);
 
 		// fmap turns a function of type "T -> R" into a function of type "Promise<T> -> Promise<R>"
@@ -75,10 +75,10 @@ public class PromiseTest {
 		F1<String, List<String>> splitByComman = split(",");
 		F1<List<String>, String> joinByUnderscore = join("_");
 		String data = "I,love,Java";
-		assertEquals(fmap(Composing._do(splitByComman, joinByUnderscore)).apply(unit(data)).await(), "I_love_Java");
+		assertEquals(fmap(Composing.__(splitByComman, joinByUnderscore)).apply(unit(data)).await(), "I_love_Java");
 		assertEquals(
-				fmap(Composing._do(splitByComman, joinByUnderscore)).apply(unit(data)),
-				Composing._do(fmap(splitByComman), fmap(joinByUnderscore)).apply(unit(data)));
+				fmap(Composing.__(splitByComman, joinByUnderscore)).apply(unit(data)),
+				Composing.__(fmap(splitByComman), fmap(joinByUnderscore)).apply(unit(data)));
 	}
 
 	/**
@@ -121,11 +121,11 @@ public class PromiseTest {
 		String r = liftA(join).apply(promises).await();
 		assertEquals(PAGE1 + "," + PAGE2 + "," + PAGE3, r);
 
-		F1<List<String>, Promise<String>> f2 = Composing._do(
+		F1<List<String>, Promise<String>> f2 = Composing.__(
 				map(PromiseTest::asyncGet),
 				map(fmap(split)),
 				liftA(flatten),
-				fmap(Composing._do(unique, sort, join)));
+				fmap(Composing.__(unique, sort, join)));
 		String result2 = f2.apply(asList(URL1, URL2, URL3)).await();
 		System.out.println(result2);
 	}
@@ -169,7 +169,7 @@ public class PromiseTest {
 	public void testPromise_fmap_join_flatMap_invariant() {
 		// _(fmap(f), join)
 		F1<Promise<String>, Promise<String>> liftedAsyncGet1 = Composing
-				.<Promise<String>, Promise<Promise<String>>, Promise<String>>_do(fmap(PromiseTest::asyncGet), Promises::join);
+				.<Promise<String>, Promise<Promise<String>>, Promise<String>>__(fmap(PromiseTest::asyncGet), Promises::join);
 
 		// flatMap(f)
 		F1<Promise<String>, Promise<String>> liftedAsyncGet2 = flatMap(PromiseTest::asyncGet);
