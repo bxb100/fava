@@ -1,8 +1,6 @@
 package fava;
 
-import fava.Functions.IF1;
-import fava.Functions.IF2;
-import fava.Functions.IF3;
+import fava.Functions.*;
 
 /**
  * Functions for currying.
@@ -68,6 +66,22 @@ public final class Currying {
 		};
 	}
 
+	@SuppressWarnings("CommentedOutCode")
+	public static <T> P2<T> of(IP2<T> f) {
+
+		// can't using this, because the implement of F2 not the child class of P2
+		// Java is strong type language, so it's not allowed to do this.
+//		F2<T, T, T> curry = curry(f);
+//		P2<T> o = (P2<T>) curry;
+
+		return new P2<>() {
+			@Override
+			public T apply(T arg1, T arg2) {
+				return f.apply(arg1, arg2);
+			}
+		};
+	}
+
 	/**
 	 * Function of type T -> R.
 	 */
@@ -96,7 +110,6 @@ public final class Currying {
 				public R apply(T2 arg2) {
 					return F2.this.apply(arg1, arg2);
 				}
-
 			};
 		}
 	}
@@ -128,18 +141,18 @@ public final class Currying {
 	/**
 	 * Unary operator of type T -> T, used as a short form of F1<T, T>.
 	 */
-	public static abstract class P1<T> extends F1<T, T> {
+	public static abstract class P1<T> extends F1<T, T> implements IP1<T> {
 	}
 
 	/**
 	 * Binary operator of type T -> T -> T, used as a short form of F2<T, T, T>.
 	 */
-	public static abstract class P2<T> extends F2<T, T, T> {
+	public static abstract class P2<T> extends F2<T, T, T> implements IP2<T> {
 	}
 
 	/**
 	 * 3-ary operator of type T -> T -> T -> T, used as a short form of F3<T, T, T, T>.
 	 */
-	public static abstract class P3<T> extends F3<T, T, T, T> {
+	public static abstract class P3<T> extends F3<T, T, T, T> implements IP3<T> {
 	}
 }

@@ -27,4 +27,15 @@ public class CurryingTest {
 		assertEquals(7, add.apply(3, 4).intValue());
 		assertTrue(add.apply(3) instanceof F1<?, ?>);
 	}
+
+	@Test
+	public void testP2() {
+
+		F2<String, String, String> curry = Currying.curry((a, b) -> a + b);
+		assertEquals("ab", curry.apply("a").apply("b"));
+
+		Currying.P2<String> curry2 = Currying.of((a, b) -> a + b);
+		assertEquals("ab", curry2.apply("a").apply("b"));
+		assertEquals("ab", curry2.apply("a", "b"));
+	}
 }
