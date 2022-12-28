@@ -161,7 +161,7 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	}
 
 	@Override
-	public <R> Promise<R> bind(IF1<T, ? extends Monad<R>> f) {
+	public <R> Promise<R> then(IF1<T, ? extends Monad<R>> f) {
 		// promiseR is the composition of "this" promise and "that promise.
 		final Promise<R> promiseR = new Promise<>() {
 		};

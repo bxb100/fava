@@ -143,7 +143,7 @@ public class PromiseTest {
 
 		// 1) bind chain
 		{
-			String result = asyncGet(URL4).bind(PromiseTest::asyncGet).bind(PromiseTest::asyncGet).await();
+			String result = asyncGet(URL4).then(PromiseTest::asyncGet).then(PromiseTest::asyncGet).await();
 			assertEquals(PAGE6, result);
 		}
 

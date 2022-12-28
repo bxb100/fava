@@ -192,7 +192,7 @@ public class Promises {
 	 * There's an invariant among fmap, join and flatMap: _(fmap(f), join) = flagMap(f).
 	 */
 	public static <T, R> Promise<R> flatMap(IF1<T, Promise<R>> f, Promise<T> promiseT) {
-		return promiseT.bind(f);
+		return promiseT.then(f);
 	}
 
 	/**
