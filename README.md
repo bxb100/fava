@@ -2,6 +2,7 @@
 
 JDK 11+
 
+
 # Java Lambda: Method Reference
 
 [from](https://dzone.com/articles/java-lambda-method-reference)
@@ -29,6 +30,11 @@ means two input parameters and one output parameter
 ===> `String::split`
 
 ===> `IF2<String, String, String[]> if2 = String::split`
+
+## Other modules
+
+* [vavr](https://github.com/vavr-io/vavr)
+* [java-promise](https://github.com/riversun/java-promise)
 
 ---
 

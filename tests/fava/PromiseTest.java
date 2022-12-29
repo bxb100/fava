@@ -6,6 +6,7 @@ import fava.data.Lists;
 import fava.data.Strings;
 import fava.promise.Promise;
 import fava.promise.Promises;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.URI;
@@ -46,7 +47,7 @@ public class PromiseTest {
 	}
 
 	@Test
-	public void testPromise_fmap() throws Exception {
+	public void testPromise_fmap() {
 		F1<List<String>, List<String>> reverse = Lists.reverse();
 		F1<String, String> toUpperCase = toUpperCase();
 		F1<String, String> convert = Composing.__(split(" "), reverse, map(toUpperCase), join("_"));
@@ -71,7 +72,7 @@ public class PromiseTest {
 	 * Tests functor law: fmap (p . q) = (fmap p) . (fmap q)
 	 */
 	@Test
-	public void testPromise_functorLaw2() throws Exception {
+	public void testPromise_functorLaw2() {
 		F1<String, List<String>> splitByComman = split(",");
 		F1<List<String>, String> joinByUnderscore = join("_");
 		String data = "I,love,Java";
@@ -87,7 +88,7 @@ public class PromiseTest {
 	 * "String -> String" into a function of type "Promise<String> -> Promise<String>".
 	 */
 	@Test
-	public void testPromise_liftA() throws Exception {
+	public void testPromise_liftA() {
 		Promise<String> page1 = asyncGet(URL1);
 		Promise<String> page2 = asyncGet(URL2);
 
@@ -104,9 +105,8 @@ public class PromiseTest {
 	 * from the Internet. It's to demonstrate lifting a function of type
 	 * "List<T> -> R" into a function of type "List<Promise<T>> -> Promise<R>"
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testPromise_liftAForList() throws Exception {
+	public void testPromise_liftAForList() {
 		Promise<String> page1 = asyncGet(URL1);
 		Promise<String> page2 = asyncGet(URL2);
 		Promise<String> page3 = asyncGet(URL3);
@@ -193,8 +193,8 @@ public class PromiseTest {
 
 		assertNotNull(
 				Promise.fulfillInAsync(action, Executors.newSingleThreadExecutor())
-						.onSuccess(System.out::println)
-						.onFailure(System.err::println)
+						.onSuccess(Assert::assertNotNull)
+						.onFailure(Assert::assertNull)
 						.await()
 		);
 	}
@@ -204,7 +204,7 @@ public class PromiseTest {
 	 * page asynchronously or throws a 404 NOT FOUND exception.
 	 */
 	private static class HttpPromise extends Promise<String> {
-		private static final HashMap<String, String> pages = new HashMap<String, String>();
+		private static final HashMap<String, String> pages = new HashMap<>();
 
 		static {
 			pages.put(URL1, PAGE1);
@@ -218,19 +218,16 @@ public class PromiseTest {
 		public HttpPromise(final String url) {
 			final long interval = 100;
 			// Simulate asynchronous HTTP request of 100 ms with thread.
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(interval);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					if (pages.containsKey(url)) {
-						HttpPromise.this.notifySuccess(pages.get(url));
-					} else {
-						HttpPromise.this.notifyFailure(new Exception("404 NOT FOUND"));
-					}
+			new Thread(() -> {
+				try {
+					Thread.sleep(interval);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				if (pages.containsKey(url)) {
+					HttpPromise.this.notifySuccess(pages.get(url));
+				} else {
+					HttpPromise.this.notifyFailure(new Exception("404 NOT FOUND"));
 				}
 			})
 					.start();
