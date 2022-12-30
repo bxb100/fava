@@ -1,15 +1,14 @@
-package fava.promise;
+package com.fava.promise;
 
-import fava.Currying.F1;
-import fava.Currying.F2;
-import fava.Functions.IF1;
-import fava.Functions.IF2;
-import fava.data.Lists;
-import fava.promise.Promise.Listener;
+import com.fava.Currying;
+import com.fava.Functions.IF1;
+import com.fava.Functions.IF2;
+import com.fava.data.Lists;
+import com.fava.promise.Promise.Listener;
 
 import java.util.List;
 
-import static fava.Currying.curry;
+import static com.fava.Currying.curry;
 
 /**
  * A set of functions for {@link Promise}.
@@ -26,19 +25,19 @@ public class Promises {
 	/**
 	 * The curried form of {@link Promises#fmap(IF1, Promise))}.
 	 */
-	public static <T, R> F2<IF1<T, R>, Promise<T>, Promise<R>> fmap() {
-		return curry((IF2<IF1<T, R>, Promise<T>, Promise<R>>) Promises::fmap);
+	public static <T, R> Currying.F2<IF1<T, R>, Promise<T>, Promise<R>> fmap() {
+		return Currying.curry((IF2<IF1<T, R>, Promise<T>, Promise<R>>) Promises::fmap);
 	}
 
 	/**
 	 * The curried form of {@link Promises#fmap(IF1, Promise)}.
 	 */
-	public static <T, R> F1<Promise<T>, Promise<R>> fmap(IF1<T, R> f) {
+	public static <T, R> Currying.F1<Promise<T>, Promise<R>> fmap(IF1<T, R> f) {
 		return Promises.<T, R>fmap().apply(f);
 	}
 
-	public static <T1, T2, R> F2<Promise<T1>, Promise<T2>, Promise<R>> liftA(final F2<T1, T2, R> f) {
-		return new F2<Promise<T1>, Promise<T2>, Promise<R>>() {
+	public static <T1, T2, R> Currying.F2<Promise<T1>, Promise<T2>, Promise<R>> liftA(final Currying.F2<T1, T2, R> f) {
+		return new Currying.F2<Promise<T1>, Promise<T2>, Promise<R>>() {
 			private Promise.State state1 = Promise.State.PENDING;
 			private Promise.State state2 = Promise.State.PENDING;
 			private T1 value1;
@@ -100,8 +99,8 @@ public class Promises {
 		};
 	}
 
-	public static <T, R> F1<List<Promise<T>>, Promise<R>> liftA(final F1<List<T>, R> f) {
-		return new F1<List<Promise<T>>, Promise<R>>() {
+	public static <T, R> Currying.F1<List<Promise<T>>, Promise<R>> liftA(final Currying.F1<List<T>, R> f) {
+		return new Currying.F1<List<Promise<T>>, Promise<R>>() {
 			@Override
 			public Promise<R> apply(final List<Promise<T>> promisesT) {
 				final Promise<R> promiseR = new Promise<R>() {
@@ -199,8 +198,8 @@ public class Promises {
 	 * Curried form of the {@link Promises#flatMap(IF1, Promise)}. This function turns a
 	 * function of type {@code T -> Promise<R>} into a function of type {@code Promise T -> Promise R}.
 	 */
-	public static <T, R> F1<Promise<T>, Promise<R>> flatMap(IF1<T, Promise<R>> f) {
-		return curry((IF2<IF1<T, Promise<R>>, Promise<T>, Promise<R>>) Promises::flatMap).apply(f);
+	public static <T, R> Currying.F1<Promise<T>, Promise<R>> flatMap(IF1<T, Promise<R>> f) {
+		return Currying.curry((IF2<IF1<T, Promise<R>>, Promise<T>, Promise<R>>) Promises::flatMap).apply(f);
 	}
 
 	/**

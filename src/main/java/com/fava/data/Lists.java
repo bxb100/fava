@@ -1,17 +1,17 @@
-package fava.data;
+package com.fava.data;
 
-import fava.Composing;
-import fava.Currying.F1;
-import fava.Currying.F2;
-import fava.Functions.IF1;
+import com.fava.Composing;
+import com.fava.Currying;
+import com.fava.Folding;
+import com.fava.Functions;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static fava.Folding.foldl;
-import static fava.Folding.foldr;
+import static com.fava.Folding.foldl;
+import static com.fava.Folding.foldr;
 
 /**
  * Functions for lists.
@@ -40,8 +40,8 @@ public class Lists {
 	 *
 	 * <p>append :: T -> [T] -> [T]
 	 */
-	public static <T> F2<T, List<T>, List<T>> append() {
-		return new F2<T, List<T>, List<T>>() {
+	public static <T> Currying.F2<T, List<T>, List<T>> append() {
+		return new Currying.F2<T, List<T>, List<T>>() {
 			@Override
 			public List<T> apply(T element, List<T> list) {
 				return append(element, list);
@@ -67,8 +67,8 @@ public class Lists {
 	 *
 	 * <p>flatten: [[T]] -> [T]
 	 */
-	public static <T> F1<List<List<T>>, List<T>> flatten() {
-		return new F1<List<List<T>>, List<T>>() {
+	public static <T> Currying.F1<List<List<T>>, List<T>> flatten() {
+		return new Currying.F1<List<List<T>>, List<T>>() {
 			@Override
 			public List<T> apply(List<List<T>> listOfLists) {
 				return flatten(listOfLists);
@@ -81,8 +81,8 @@ public class Lists {
 	 *
 	 * <p>reverse :: [T] -> [T]
 	 */
-	public static <T> F1<List<T>, List<T>> reverse() {
-		return foldr(Lists.append(), new ArrayList<T>());
+	public static <T> Currying.F1<List<T>, List<T>> reverse() {
+		return Folding.foldr(Lists.append(), new ArrayList<T>());
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class Lists {
 	 *
 	 * <p>sort :: (T -> T -> Int) -> [T] -> [T]
 	 */
-	public static <T> List<T> sort(final F2<T, T, Integer> comparator, final List<T> list) {
+	public static <T> List<T> sort(final Currying.F2<T, T, Integer> comparator, final List<T> list) {
 		ArrayList<T> result = new ArrayList<T>(list);
 		Collections.sort(result, new Comparator<T>() {
 			@Override
@@ -106,10 +106,10 @@ public class Lists {
 	 *
 	 * <p>sort :: (T -> T -> Int) -> [T] -> [T]
 	 */
-	public static <T> F2<F2<T, T, Integer>, List<T>, List<T>> sort() {
-		return new F2<F2<T, T, Integer>, List<T>, List<T>>() {
+	public static <T> Currying.F2<Currying.F2<T, T, Integer>, List<T>, List<T>> sort() {
+		return new Currying.F2<Currying.F2<T, T, Integer>, List<T>, List<T>>() {
 			@Override
-			public List<T> apply(final F2<T, T, Integer> comparator, final List<T> list) {
+			public List<T> apply(final Currying.F2<T, T, Integer> comparator, final List<T> list) {
 				return sort(comparator, list);
 			}
 		};
@@ -120,7 +120,7 @@ public class Lists {
 	 *
 	 * <p>sort :: (T -> T -> Int) -> [T] -> [T]
 	 */
-	public static <T> F1<List<T>, List<T>> sort(F2<T, T, Integer> comparator) {
+	public static <T> Currying.F1<List<T>, List<T>> sort(Currying.F2<T, T, Integer> comparator) {
 		return Lists.<T>sort().apply(comparator);
 	}
 
@@ -129,7 +129,7 @@ public class Lists {
 	 *
 	 * <p>exists :: (T -> Boolean) -> [T] -> Boolean
 	 */
-	public static <T> boolean exists(F1<T, Boolean> predicate, List<T> list) {
+	public static <T> boolean exists(Currying.F1<T, Boolean> predicate, List<T> list) {
 		for (T element : list) {
 			if (predicate.apply(element)) {
 				return true;
@@ -141,10 +141,10 @@ public class Lists {
 	/**
 	 * Curried version of {@link exists}.
 	 */
-	public static <T> F2<F1<T, Boolean>, List<T>, Boolean> exists() {
-		return new F2<F1<T, Boolean>, List<T>, Boolean>() {
+	public static <T> Currying.F2<Currying.F1<T, Boolean>, List<T>, Boolean> exists() {
+		return new Currying.F2<Currying.F1<T, Boolean>, List<T>, Boolean>() {
 			@Override
-			public Boolean apply(F1<T, Boolean> predicate, List<T> list) {
+			public Boolean apply(Currying.F1<T, Boolean> predicate, List<T> list) {
 				return exists(predicate, list);
 			}
 		};
@@ -160,20 +160,20 @@ public class Lists {
 	 * @param f    the function to be applied to each element of the list
 	 * @param list the list to be mapped over
 	 */
-	public static <T, R> List<R> map(final IF1<T, R> f, List<T> list) {
+	public static <T, R> List<R> map(final Functions.IF1<T, R> f, List<T> list) {
 		final ArrayList<R> result = new ArrayList<R>(list.size());
 		// Here we define {@code map} with {@code foldl}, that means {@code fold}
 		// is more fundamental than {@code map} in the level of abstraction.
-		return foldl(Composing.__(f, Lists.append()), result, list);
+		return Folding.foldl(Composing.__(f, Lists.append()), result, list);
 	}
 
 	/**
 	 * Curried version of mapn.
 	 */
-	public static <T, R> F2<IF1<T, R>, List<T>, List<R>> map() {
-		return new F2<IF1<T, R>, List<T>, List<R>>() {
+	public static <T, R> Currying.F2<Functions.IF1<T, R>, List<T>, List<R>> map() {
+		return new Currying.F2<Functions.IF1<T, R>, List<T>, List<R>>() {
 			@Override
-			public List<R> apply(IF1<T, R> f, List<T> list) {
+			public List<R> apply(Functions.IF1<T, R> f, List<T> list) {
 				return map(f, list);
 			}
 		};
@@ -182,7 +182,7 @@ public class Lists {
 	/**
 	 * Curried version of map with partial application serving as syntax sugar.
 	 */
-	public static <T, R> F1<List<T>, List<R>> map(IF1<T, R> f) {
+	public static <T, R> Currying.F1<List<T>, List<R>> map(Functions.IF1<T, R> f) {
 		return Lists.<T, R>map().apply(f);
 	}
 
@@ -197,17 +197,17 @@ public class Lists {
 	 * @param f    the function to be applied to each element of the list
 	 * @param list the list to be mapped over
 	 */
-	public static <T, R> List<R> flatMap(final IF1<T, List<R>> f, List<T> list) {
+	public static <T, R> List<R> flatMap(final Functions.IF1<T, List<R>> f, List<T> list) {
 		return flatten(map(f, list));
 	}
 
 	/**
 	 * Curried version of flatMap.
 	 */
-	public static <T, R> F2<IF1<T, List<R>>, List<T>, List<R>> flatMap() {
-		return new F2<IF1<T, List<R>>, List<T>, List<R>>() {
+	public static <T, R> Currying.F2<Functions.IF1<T, List<R>>, List<T>, List<R>> flatMap() {
+		return new Currying.F2<Functions.IF1<T, List<R>>, List<T>, List<R>>() {
 			@Override
-			public List<R> apply(IF1<T, List<R>> arg1, List<T> arg2) {
+			public List<R> apply(Functions.IF1<T, List<R>> arg1, List<T> arg2) {
 				return flatMap(arg1, arg2);
 			}
 		};
@@ -216,7 +216,7 @@ public class Lists {
 	/**
 	 * Curried version of flatMap with partial application serving as syntax sugar.
 	 */
-	public static <T, R> F1<List<T>, List<R>> flatMap(IF1<T, List<R>> f) {
+	public static <T, R> Currying.F1<List<T>, List<R>> flatMap(Functions.IF1<T, List<R>> f) {
 		return Lists.<T, R>flatMap().apply(f);
 	}
 
@@ -241,8 +241,8 @@ public class Lists {
 	/**
 	 * Curried version of {@link unique}.
 	 */
-	public static <T> F1<List<T>, List<T>> unique() {
-		return new F1<List<T>, List<T>>() {
+	public static <T> Currying.F1<List<T>, List<T>> unique() {
+		return new Currying.F1<List<T>, List<T>>() {
 			@Override
 			public List<T> apply(List<T> list) {
 				return unique(list);

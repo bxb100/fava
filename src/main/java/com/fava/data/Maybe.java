@@ -1,7 +1,7 @@
-package fava.data;
+package com.fava.data;
 
-import fava.Functions.IF1;
-import fava.functor.Functor;
+import com.fava.Functions;
+import com.fava.functor.Functor;
 
 public class Maybe<T> implements Functor<T> {
 	private final boolean hasValue;
@@ -21,7 +21,7 @@ public class Maybe<T> implements Functor<T> {
 	}
 
 	@Override
-	public <R> Maybe<R> fmap(IF1<T, R> f) {
+	public <R> Maybe<R> fmap(Functions.IF1<T, R> f) {
 		return hasValue ? just(f.apply(value)) : Maybe.nothing();
 	}
 

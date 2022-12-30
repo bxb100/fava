@@ -1,7 +1,7 @@
-package fava;
+package com.fava;
 
-import fava.Currying.F2;
-import fava.Functions.IF2;
+import com.fava.Currying.F2;
+import com.fava.Functions.IF2;
 
 public class Flipping {
 	public static <T, U, R> F2<U, T, R> flip(IF2<T, U, R> f) {

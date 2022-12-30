@@ -1,4 +1,4 @@
-package fava;
+package com.fava;
 
 public class Identity {
 	/**

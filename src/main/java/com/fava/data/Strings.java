@@ -1,9 +1,7 @@
-package fava.data;
+package com.fava.data;
 
-import fava.Currying;
-import fava.Currying.F1;
-import fava.Currying.F2;
-import fava.Functions.IF2;
+import com.fava.Currying;
+import com.fava.Functions.IF2;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,9 +19,9 @@ public class Strings {
 	 * <p> split :: String -> String -> [String]
 	 */
 	@SuppressWarnings("CommentedOutCode")
-	public static F2<String, String, List<String>> split() {
+	public static Currying.F2<String, String, List<String>> split() {
 
-		return new F2<>() {
+		return new Currying.F2<>() {
 			@Override
 			public List<String> apply(String delimiter, String data) {
 				return Arrays.asList(data.split(delimiter));
@@ -48,7 +46,7 @@ public class Strings {
 	 *
 	 * <p> splitBy :: String -> String -> [String]
 	 */
-	public static F1<String, List<String>> split(String delimiter) {
+	public static Currying.F1<String, List<String>> split(String delimiter) {
 		return split().apply(delimiter);
 	}
 
@@ -59,7 +57,7 @@ public class Strings {
 	/**
 	 * Curried function for concatenating two strings.
 	 */
-	public static F2<String, String, String> concat() {
+	public static Currying.F2<String, String, String> concat() {
 		return Currying.curry(Strings::concat);
 	}
 
@@ -82,7 +80,7 @@ public class Strings {
 	 *
 	 * <p> join :: String -> [String] -> String
 	 */
-	public static F2<String, List<String>, String> join() {
+	public static Currying.F2<String, List<String>, String> join() {
 		return Currying.curry((IF2<String, List<String>, String>) Strings::join);
 	}
 
@@ -93,9 +91,9 @@ public class Strings {
 	 *
 	 * @param delimiter the delimiter
 	 */
-	public static F1<List<String>, String> join(final String delimiter) {
+	public static Currying.F1<List<String>, String> join(final String delimiter) {
 
-		return new F1<>() {
+		return new Currying.F1<>() {
 			/**
 			 * @param strings the string list
 			 */
@@ -111,8 +109,8 @@ public class Strings {
 	 *
 	 * <p> toUpperCase :: String -> String
 	 */
-	public static F1<String, String> toUpperCase() {
-		return new F1<String, String>() {
+	public static Currying.F1<String, String> toUpperCase() {
+		return new Currying.F1<String, String>() {
 			@Override
 			public String apply(String str) {
 				return str.toUpperCase();
@@ -125,8 +123,8 @@ public class Strings {
 	 *
 	 * <p> toLowerCase :: String -> String
 	 */
-	public static F1<String, String> toLowerCase() {
-		return new F1<String, String>() {
+	public static Currying.F1<String, String> toLowerCase() {
+		return new Currying.F1<String, String>() {
 			@Override
 			public String apply(String str) {
 				return str.toLowerCase();
@@ -142,8 +140,8 @@ public class Strings {
 	 * less than the string argument; and a value greater than 0 if
 	 * this string is lexicographically greater than the string argument.
 	 */
-	public static F2<String, String, Integer> compare() {
-		return new F2<String, String, Integer>() {
+	public static Currying.F2<String, String, Integer> compare() {
+		return new Currying.F2<String, String, Integer>() {
 			@Override
 			public Integer apply(String str1, String str2) {
 				return str1.compareTo(str2);
@@ -160,8 +158,8 @@ public class Strings {
 	 * less than the string argument; and a value greater than 0 if
 	 * this string is lexicographically greater than the string argument.
 	 */
-	public static F2<String, String, Integer> compareIgnoreCase() {
-		return new F2<>() {
+	public static Currying.F2<String, String, Integer> compareIgnoreCase() {
+		return new Currying.F2<>() {
 			@Override
 			public Integer apply(String str1, String str2) {
 				return str1.compareToIgnoreCase(str2);
@@ -183,8 +181,8 @@ public class Strings {
 	/**
 	 * Curried form of {@link Strings#times(int, String)}.
 	 */
-	public static F2<Integer, String, String> times() {
-		return new F2<>() {
+	public static Currying.F2<Integer, String, String> times() {
+		return new Currying.F2<>() {
 			@Override
 			public String apply(Integer n, String str) {
 				return times(n, str);

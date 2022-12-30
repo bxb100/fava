@@ -1,8 +1,8 @@
-package fava;
+package com.fava;
 
-import fava.Currying.F1;
-import fava.Currying.F2;
-import fava.Functions.IF1;
+import com.fava.Currying.F1;
+import com.fava.Currying.F2;
+import com.fava.Functions.IF1;
 
 /**
  * Functions for functional composition.

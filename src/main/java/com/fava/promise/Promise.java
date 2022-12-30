@@ -1,8 +1,8 @@
-package fava.promise;
+package com.fava.promise;
 
-import fava.Functions.IF1;
-import fava.functor.Functor;
-import fava.monad.Monad;
+import com.fava.functor.Functor;
+import com.fava.Functions.IF1;
+import com.fava.monad.Monad;
 
 import java.util.ArrayList;
 import java.util.Objects;

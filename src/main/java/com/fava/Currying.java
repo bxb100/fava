@@ -1,6 +1,6 @@
-package fava;
+package com.fava;
 
-import fava.Functions.*;
+import com.fava.Functions.*;
 
 /**
  * Functions for currying.

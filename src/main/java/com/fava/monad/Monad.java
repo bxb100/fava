@@ -1,6 +1,6 @@
-package fava.monad;
+package com.fava.monad;
 
-import fava.Functions.IF1;
+import com.fava.Functions.IF1;
 
 public interface Monad<T> {
 	/**

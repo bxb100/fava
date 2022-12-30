@@ -1,4 +1,4 @@
-package fava.data;
+package com.fava.data;
 
 public class Pair<T1, T2> {
 	private final T1 first;
