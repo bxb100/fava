@@ -1,2 +1,4 @@
 /target
 Fava.iml
+.idea
+!/src/test/
