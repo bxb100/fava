@@ -1,6 +1,5 @@
 package com.fava;
 
-import com.fava.Currying;
 import com.fava.data.Numbers;
 import com.fava.data.Strings;
 import org.junit.Test;

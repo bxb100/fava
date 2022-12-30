@@ -1,7 +1,5 @@
 package com.fava;
 
-import com.fava.Currying;
-import com.fava.Folding;
 import org.junit.Assert;
 import org.junit.Test;
 

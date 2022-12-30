@@ -1,6 +1,5 @@
 package com.fava;
 
-import com.fava.Currying;
 import com.fava.Functions.IF2;
 import com.fava.data.Maybe;
 import com.fava.data.Maybes;

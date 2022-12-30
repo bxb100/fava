@@ -1,7 +1,5 @@
 package com.fava;
 
-import com.fava.Composing;
-import com.fava.Currying;
 import com.fava.data.Lists;
 import org.junit.Test;
 
