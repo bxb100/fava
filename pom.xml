@@ -64,11 +64,13 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.18.1</version>
+				<version>3.0.0-M7</version>
 				<configuration>
+					<useModulePath>false</useModulePath> <!-- https://issues.apache.org/jira/browse/SUREFIRE-1809 -->
 					<useFile>false</useFile>
 					<includes>
-						<include>**/*Test.java</include>
+						<include>**/*Test</include>
+						<include>**/*Spec</include>
 					</includes>
 				</configuration>
 			</plugin>
