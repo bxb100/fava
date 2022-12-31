@@ -13,11 +13,14 @@ public class Maybe<T> implements Functor<T> {
 	}
 
 	public static <T> Maybe<T> just(T t) {
-		return new Maybe<T>(true, t);
+		if (t == null) {
+			return nothing();
+		}
+		return new Maybe<>(true, t);
 	}
 
 	public static <T> Maybe<T> nothing() {
-		return new Maybe<T>(false, null);
+		return new Maybe<>(false, null);
 	}
 
 	@Override
@@ -30,7 +33,6 @@ public class Maybe<T> implements Functor<T> {
 	}
 
 	public T getValue() {
-		assert hasValue;
 		return value;
 	}
 

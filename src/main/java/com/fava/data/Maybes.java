@@ -5,8 +5,6 @@ import com.fava.Currying;
 import com.fava.Functions.IF1;
 import com.fava.Functions.IF2;
 
-import static com.fava.Currying.curry;
-
 /**
  * A set of functions for {@link Maybe}.
  */
@@ -16,7 +14,7 @@ public final class Maybes {
 	 * into a function of type {@code Maybe<T> -> Maybe<R>}.
 	 */
 	public static <T, R> Currying.F1<Maybe<T>, Maybe<R>> fmap(final IF1<T, R> f) {
-		return new Currying.F1<Maybe<T>, Maybe<R>>() {
+		return new Currying.F1<>() {
 			@Override
 			public Maybe<R> apply(Maybe<T> maybeT) {
 				return maybeT.fmap(f);
@@ -29,7 +27,6 @@ public final class Maybes {
 	 * type {@code Maybe<T -> R>} into a function of type {@code Maybe<T> -> Maybe<R>}.
 	 */
 	public static <T, R, F extends IF1<T, R>> Currying.F1<Maybe<T>, Maybe<R>> fapply(final Maybe<F> f) {
-		assert f.hasValue();
 		return fmap(f.getValue());
 	}
 

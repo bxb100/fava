@@ -8,8 +8,6 @@ import com.fava.promise.Promise.Listener;
 
 import java.util.List;
 
-import static com.fava.Currying.curry;
-
 /**
  * A set of functions for {@link Promise}.
  */
@@ -152,7 +150,6 @@ public class Promises {
 	 * join :: Promise<Promise<T>> -> Promise<T>
 	 */
 	public static <T> Promise<T> join(final Promise<Promise<T>> promiseOfPromiseT) {
-		assert promiseOfPromiseT != null;
 
 		final Promise<T> promiseT = new Promise<T>();
 

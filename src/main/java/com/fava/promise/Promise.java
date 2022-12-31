@@ -182,7 +182,6 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 			@Override
 			public void onSuccess(T value) {
 				Promise<R> that = (Promise<R>) f.apply(value);
-				assert that != null;
 				// callback for "that" promise
 				that.addListener(new Listener<>() {
 					@Override

@@ -36,6 +36,14 @@ means two input parameters and one output parameter
 * [vavr](https://github.com/vavr-io/vavr)
 * [java-promise](https://github.com/riversun/java-promise)
 
+
+# Test with Spock
+
+* [Spock Document](https://spockframework.org/spock/docs/1.0/interaction_based_testing.html)
+* [Spock Examples](https://github.com/spockframework/spock-example)
+* [Groovy List](https://www.baeldung.com/groovy-lists)
+* [Book: Making Java Groovy](https://www.amazon.com/Making-Java-Groovy-Ken-Kousen/dp/1935182943)
+
 ---
 
 * https://dzone.com/articles/java-lambda-method-reference

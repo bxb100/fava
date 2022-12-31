@@ -12,8 +12,6 @@ public final class Currying {
 	 * Turns a function into the curried form.
 	 */
 	public static <T, R> F1<T, R> curry(final IF1<T, R> f) {
-		assert f != null;
-
 		return new F1<>() {
 			@Override
 			public R apply(T arg) {
@@ -26,7 +24,6 @@ public final class Currying {
 	 * Turns a function into the curried form.
 	 */
 	public static <T1, T2, R> F2<T1, T2, R> curry(final IF2<T1, T2, R> f) {
-		assert f != null;
 
 		return new F2<>() {
 			@Override
@@ -40,7 +37,6 @@ public final class Currying {
 	 * Turns a function into the curried form.
 	 */
 	public static <T1, T2, T3, R> F3<T1, T2, T3, R> curry(final IF3<T1, T2, T3, R> f) {
-		assert f != null;
 
 		return new F3<>() {
 			@Override
