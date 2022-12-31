@@ -59,9 +59,27 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
 			<version>${groovy.version}</version>
 		</dependency>
 	</dependencies>
+	<!-- https://github.com/spockframework/spock-example/blob/master/pom.xml -->
 	<build>
 		<plugins>
-
+			<!-- Mandatory plugins for using Spock -->
+			<plugin>
+				<!-- The gmaven plus plugin is used to compile Groovy code. To learn more about this plugin,
+				visit https://github.com/groovy/GMavenPlus/wiki -->
+				<groupId>org.codehaus.gmavenplus</groupId>
+				<artifactId>gmavenplus-plugin</artifactId>
+				<version>2.0.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+							<goal>compileTests</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Optional plugins for using Spock -->
+			<!-- Only required if names of spec classes don't match default Surefire patterns (`*Test` etc.) -->
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0-M7</version>

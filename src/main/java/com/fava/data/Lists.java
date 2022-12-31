@@ -5,13 +5,7 @@ import com.fava.Currying;
 import com.fava.Folding;
 import com.fava.Functions;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import static com.fava.Folding.foldl;
-import static com.fava.Folding.foldr;
+import java.util.*;
 
 /**
  * Functions for lists.
@@ -224,25 +218,21 @@ public class Lists {
 	 * Returns a list of the unique elements of another list. It will preserve the
 	 * order between the elements.
 	 *
-	 * <p>Time complexity: O(n^2)
+	 * <p>Time complexity: O(n)
 	 *
 	 * <p> unique :: [T] -> [T]
 	 */
 	public static <T> List<T> unique(List<T> list) {
-		ArrayList<T> result = new ArrayList<T>();
-		for (T element : list) {
-			if (!result.contains(element)) {
-				result.add(element);
-			}
-		}
-		return result;
+
+		Set<T> set = new LinkedHashSet<>(list);
+		return new ArrayList<>(set);
 	}
 
 	/**
-	 * Curried version of {@link unique}.
+	 * Curried version of {@link Lists#unique(List)}.
 	 */
 	public static <T> Currying.F1<List<T>, List<T>> unique() {
-		return new Currying.F1<List<T>, List<T>>() {
+		return new Currying.F1<>() {
 			@Override
 			public List<T> apply(List<T> list) {
 				return unique(list);
