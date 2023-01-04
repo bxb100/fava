@@ -33,7 +33,7 @@ means two input parameters and one output parameter
 
 ## Other modules
 
-* [vavr](https://github.com/vavr-io/vavr)
+* [vavr](https://github.com/vavr-io/vavr) not recommend
 * [java-promise](https://github.com/riversun/java-promise)
 
 
