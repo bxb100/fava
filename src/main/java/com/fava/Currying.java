@@ -20,6 +20,15 @@ public final class Currying {
 		};
 	}
 
+	public static <T> P1<T> curry(final IP1<T> f) {
+		return new P1<>() {
+			@Override
+			public T apply(T arg) {
+				return f.apply(arg);
+			}
+		};
+	}
+
 	/**
 	 * Turns a function into the curried form.
 	 */
@@ -34,6 +43,18 @@ public final class Currying {
 	}
 
 	/**
+	 * overwrites the {@link Currying#curry(IF2)}
+	 */
+	public static <T> P2<T> curring(final IP2<T> f) {
+		return new P2<>() {
+			@Override
+			public T apply(T arg1, T arg2) {
+				return f.apply(arg1, arg2);
+			}
+		};
+	}
+
+	/**
 	 * Turns a function into the curried form.
 	 */
 	public static <T1, T2, T3, R> F3<T1, T2, T3, R> curry(final IF3<T1, T2, T3, R> f) {
@@ -41,6 +62,15 @@ public final class Currying {
 		return new F3<>() {
 			@Override
 			public R apply(T1 arg1, T2 arg2, T3 arg3) {
+				return f.apply(arg1, arg2, arg3);
+			}
+		};
+	}
+
+	public static <T> P3<T> curry(final IP3<T> f) {
+		return new P3<>() {
+			@Override
+			public T apply(T arg1, T arg2, T arg3) {
 				return f.apply(arg1, arg2, arg3);
 			}
 		};
@@ -62,21 +92,6 @@ public final class Currying {
 		};
 	}
 
-	@SuppressWarnings("CommentedOutCode")
-	public static <T> P2<T> of(IP2<T> f) {
-
-		// can't using this, because the implement of F2 not the child class of P2
-		// Java is strong type language, so it's not allowed to do this.
-//		F2<T, T, T> curry = curry(f);
-//		P2<T> o = (P2<T>) curry;
-
-		return new P2<>() {
-			@Override
-			public T apply(T arg1, T arg2) {
-				return f.apply(arg1, arg2);
-			}
-		};
-	}
 
 	/**
 	 * Function of type T -> R.

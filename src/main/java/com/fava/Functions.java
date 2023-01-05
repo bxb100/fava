@@ -44,6 +44,18 @@ public final class Functions {
 		R apply(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
 	}
 
+	/*
+	Java no structural type: https://en.wikipedia.org/wiki/Structural_type_system
+	and you can see answer like this: https://stackoverflow.com/questions/28509596/java-lambda-expressions-casting-and-comparators
+	so the code below is not possible:
+	 ```java
+	 F2<T, T, T> curry = curry(f);
+	 P2<T> o = (P2<T>) curry;
+	 ```
+	 the curry(F2) return is the anonymous sub object of IF2, so it clearly
+	 not allow convert `F2$1` to `P2`
+	 */
+
 	@FunctionalInterface
 	public interface IP1<T> extends IF1<T, T> {
 	}

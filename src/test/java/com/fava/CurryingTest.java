@@ -4,6 +4,8 @@ import com.fava.data.Numbers;
 import com.fava.data.Strings;
 import org.junit.Test;
 
+import static com.fava.Currying.F2;
+import static com.fava.Currying.P2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -29,11 +31,11 @@ public class CurryingTest {
 	@Test
 	public void testP2() {
 
-		Currying.F2<String, String, String> curry = Currying.curry((a, b) -> a + b);
+		F2<String, String, String> curry = Currying.curry((a, b) -> a + b);
 		assertEquals("ab", curry.apply("a").apply("b"));
 
-		Currying.P2<String> curry2 = Currying.of((a, b) -> a + b);
-		assertEquals("ab", curry2.apply("a").apply("b"));
-		assertEquals("ab", curry2.apply("a", "b"));
+		P2<String> aliasF2 = Currying.curring((a, b) -> a + b);
+		assertEquals("ab", aliasF2.apply("a").apply("b"));
+		assertEquals("ab", aliasF2.apply("a", "b"));
 	}
 }
