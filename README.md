@@ -1,4 +1,6 @@
 # Fava - advanced functional Java
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fbxb100%2Ffava.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fbxb100%2Ffava?ref=badge_shield)
+
 
 JDK 11+
 
@@ -48,3 +50,7 @@ means two input parameters and one output parameter
 
 * https://dzone.com/articles/java-lambda-method-reference
 * https://www.baeldung.com/java-method-references
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fbxb100%2Ffava.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fbxb100%2Ffava?ref=badge_large)
