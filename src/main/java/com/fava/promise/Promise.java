@@ -1,16 +1,17 @@
 package com.fava.promise;
 
-import com.fava.functor.Functor;
 import com.fava.Functions.IF1;
+import com.fava.functor.Functor;
 import com.fava.monad.Monad;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
 /**
@@ -25,9 +26,13 @@ import java.util.function.Consumer;
  * @author dagang.wei (weidagang@gmail.com)
  */
 public class Promise<T> implements Functor<T>, Monad<T> {
-	private final Lock lock = new ReentrantLock();
-	private final Condition condition = lock.newCondition();
-
+	private static final boolean USE_COMMON_POOL =
+			(ForkJoinPool.getCommonPoolParallelism() > 1);
+	private static final Executor ASYNC_POOL = USE_COMMON_POOL ?
+			ForkJoinPool.commonPool() : t -> new Thread(t).start();
+	// TODO: this barrier may be not necessary.
+	private static final byte[] lock = new byte[0];
+	private final Deque<Thread> threads = new ConcurrentLinkedDeque<>();
 	protected T value;
 	protected Exception exception;
 	protected ArrayList<Listener<T>> listeners = new ArrayList<>();
@@ -53,9 +58,9 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 		return promise;
 	}
 
-	public static <T> Promise<T> fulfillInAsync(final Callable<T> task, Executor executor) {
+	public static <T> Promise<T> fulfillInAsync(final Callable<T> task) {
 		final Promise<T> promise = new Promise<>();
-		executor.execute(() -> {
+		ASYNC_POOL.execute(() -> {
 			try {
 				T value = task.call();
 				promise.notifySuccess(value);
@@ -107,19 +112,17 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	 * @return the value if succeeded, or null if failed.
 	 */
 	public T await() {
-
-		lock.lock();
-		try {
-			while (state == State.PENDING) {
-				try {
-					condition.await();
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
-		} finally {
-			lock.unlock();
+		if (state != State.PENDING) {
+			return state == State.SUCCEEDED ? value : null;
 		}
+		// support multiple threads waiting
+		threads.add(Thread.currentThread());
+
+		while (state == State.PENDING) {
+			LockSupport.park(this);
+		}
+
+		threads.remove();
 
 		return state == State.SUCCEEDED ? value : null;
 	}
@@ -133,21 +136,38 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 		return value;
 	}
 
+	protected final void addListener(Consumer<T> success, Consumer<Exception> failure) {
+		addListener(new Listener<>() {
+			@Override
+			public void onSuccess(T value) {
+				success.accept(value);
+			}
+
+			@Override
+			public void onFailure(Exception exception) {
+				failure.accept(exception);
+			}
+		});
+	}
+
 	/**
 	 * Adds a listener to the promise. If the current state is PENDING, the listener
 	 * will be called later on when the promise gets fulfilled to rejected. Otherwise,
 	 * the listener will be called immediately.
 	 */
 	protected final void addListener(Listener<T> listener) {
-		lock.lock();
-		try {
+		synchronized (lock) {
 			switch (state) {
-				case SUCCEEDED -> listener.onSuccess(value);
-				case FAILED -> listener.onFailure(exception);
-				case PENDING -> listeners.add(listener);
+				case SUCCEEDED:
+					listener.onSuccess(value);
+					break;
+				case FAILED:
+					listener.onFailure(exception);
+					break;
+				case PENDING:
+					listeners.add(listener);
+					break;
 			}
-		} finally {
-			lock.unlock();
 		}
 	}
 
@@ -207,9 +227,10 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof Promise<?> that)) {
+		if (!(obj instanceof Promise)) {
 			return false;
 		}
+		Promise<?> that = (Promise<?>) obj;
 
 		Object v1 = this.await();
 		Object v2 = that.await();
@@ -222,19 +243,19 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	 * to be called inside of subclasses.
 	 */
 	protected final void notifySuccess(T value) {
-		lock.lock();
-
-		try {
+		synchronized (lock) {
 			this.value = value;
 			this.state = State.SUCCEEDED;
-			for (Listener<T> listener : listeners) {
-				listener.onSuccess(value);
-			}
-
-			condition.signalAll();
-		} finally {
-			lock.unlock();
 		}
+
+		for (Listener<T> listener : listeners) {
+			listener.onSuccess(value);
+		}
+		tryComplete();
+	}
+
+	void tryComplete() {
+		this.threads.forEach(LockSupport::unpark);
 	}
 
 	/**
@@ -242,18 +263,15 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	 * called inside of subclasses.
 	 */
 	protected final void notifyFailure(Exception exception) {
-		lock.lock();
-
-		try {
+		synchronized (lock) {
 			this.exception = exception;
 			this.state = State.FAILED;
-			for (Listener<T> listener : listeners) {
-				listener.onFailure(exception);
-			}
-			condition.signalAll();
-		} finally {
-			lock.unlock();
 		}
+
+		for (Listener<T> listener : listeners) {
+			listener.onFailure(exception);
+		}
+		tryComplete();
 	}
 
 	/**

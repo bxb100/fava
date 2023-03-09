@@ -7,6 +7,7 @@ import com.fava.data.Lists;
 import com.fava.promise.Promise.Listener;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * A set of functions for {@link Promise}.
@@ -35,90 +36,77 @@ public class Promises {
 	}
 
 	public static <T1, T2, R> Currying.F2<Promise<T1>, Promise<T2>, Promise<R>> liftA(final Currying.F2<T1, T2, R> f) {
-		return new Currying.F2<Promise<T1>, Promise<T2>, Promise<R>>() {
-			private Promise.State state1 = Promise.State.PENDING;
-			private Promise.State state2 = Promise.State.PENDING;
+		return new Currying.F2<>() {
+			private Exception e = null;
 			private T1 value1;
-			private T2 value2;
 
 			@Override
 			public Promise<R> apply(Promise<T1> promiseT1, Promise<T2> promiseT2) {
-				final Promise<R> promiseR = new Promise<R>() {
+
+				Promise<R> result = new Promise<>() {
 				};
+				CountDownLatch cdl = new CountDownLatch(1);
 
-				promiseT1.addListener(new Listener<T1>() {
-					@Override
-					public void onSuccess(T1 value) {
-						value1 = value;
-						state1 = Promise.State.SUCCEEDED;
-						synchronized (promiseR) {
-							if (state2 == Promise.State.SUCCEEDED) {
-								promiseR.notifySuccess(f.apply(value1, value2));
-							}
-						}
-					}
-
-					@Override
-					public void onFailure(Exception exception) {
-						promiseR.notifyFailure(exception);
-						synchronized (promiseR) {
-							if (state2 != Promise.State.FAILED) {
-								promiseR.notifyFailure(exception); // Only notify failure once.
-							}
-						}
-					}
+				promiseT1.addListener(v -> {
+					cdl.countDown();
+					value1 = v;
+				}, exception -> {
+					cdl.countDown();
+					e = exception;
 				});
 
-				promiseT2.addListener(new Listener<T2>() {
-					@Override
-					public void onSuccess(T2 value) {
-						value2 = value;
-						state2 = Promise.State.SUCCEEDED;
-						synchronized (promiseR) {
-							if (state1 == Promise.State.SUCCEEDED) {
-								promiseR.notifySuccess(f.apply(value1, value2));
-							}
-						}
+				promiseT2.addListener(v -> {
+					try {
+						cdl.await();
+					} catch (InterruptedException ex) {
+						throw new RuntimeException(ex);
 					}
-
-					@Override
-					public void onFailure(Exception exception) {
-						promiseR.notifyFailure(exception);
-						synchronized (promiseR) {
-							if (state1 != Promise.State.FAILED) {
-								promiseR.notifyFailure(exception); // Only notify failure once.
-							}
-						}
+					result.notifySuccess(f.apply(value1, v));
+				}, exception -> {
+					try {
+						cdl.await();
+					} catch (InterruptedException ex) {
+						throw new RuntimeException(ex);
 					}
+					result.notifyFailure(e == null ? exception : e);
 				});
-
-				return promiseR;
+				return result;
 			}
 		};
 	}
 
+	/**
+	 * This method perform like async map
+	 */
 	public static <T, R> Currying.F1<List<Promise<T>>, Promise<R>> liftA(final Currying.F1<List<T>, R> f) {
-		return new Currying.F1<List<Promise<T>>, Promise<R>>() {
+		return new Currying.F1<>() {
 			@Override
 			public Promise<R> apply(final List<Promise<T>> promisesT) {
-				final Promise<R> promiseR = new Promise<R>() {
-				};
+				CountDownLatch cdl = new CountDownLatch(promisesT.size());
+				Exception[] hasFailed = {null};
 				for (Promise<T> promiseT : promisesT) {
-					promiseT.addListener(new Listener<T>() {
-						@Override
-						public void onSuccess(T value) {
-							notifyIfDone(promisesT, promiseR);
-						}
-
-						@Override
-						public void onFailure(Exception exception) {
-							notifyIfDone(promisesT, promiseR);
-						}
-					});
+					promiseT.addListener(
+							v -> cdl.countDown(),
+							exception -> {
+								cdl.countDown();
+								hasFailed[0] = exception;
+							}
+					);
 				}
-				return promiseR;
+				// block, can also use ForJoinPool.managerBlock() like pseudocode
+				// PromiseR res = new PromiseR(); block { res.notifySuccess(f.apply(promisesT.map(Promise::getValue))) }
+				return Promise.fulfillInAsync(() -> {
+					cdl.await();
+					if (hasFailed[0] != null) {
+						// don't know how to handle side effects, so we just throw an exception.
+						throw new Exception("liftA: some promise failed.", hasFailed[0]);
+					} else {
+						return f.apply(Lists.map(Promises.getValue(), promisesT));
+					}
+				});
 			}
 
+			@Deprecated
 			private void notifyIfDone(List<Promise<T>> promisesT, Promise<R> promiseR) {
 				Promise.State state = getState(promisesT);
 				if (state == Promise.State.SUCCEEDED) {
@@ -129,12 +117,14 @@ public class Promises {
 				}
 			}
 
+			@Deprecated
 			private Promise.State getState(List<Promise<T>> promises) {
 				boolean hasFailure = false;
 				for (Promise<?> promise : promises) {
 					if (promise.state() == Promise.State.PENDING) {
-						return Promise.State.PENDING;
+						throw new IllegalStateException("Promise is not done.");
 					}
+
 					if (promise.state() == Promise.State.FAILED) {
 						hasFailure = true;
 					}
@@ -211,5 +201,19 @@ public class Promises {
 	 */
 	public static <T> IF1<Promise<T>, T> getValue() {
 		return Promise::getValue;
+	}
+
+	private <T> Listener<T> builderCommonListener() {
+		return new Listener<T>() {
+			@Override
+			public void onSuccess(T value) {
+
+			}
+
+			@Override
+			public void onFailure(Exception exception) {
+
+			}
+		};
 	}
 }

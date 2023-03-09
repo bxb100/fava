@@ -14,7 +14,7 @@ import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.fava.data.Lists.map;
 import static com.fava.data.Strings.*;
@@ -101,7 +101,7 @@ public class PromiseTest {
 	 * "List<T> -> R" into a function of type "List<Promise<T>> -> Promise<R>"
 	 */
 	@Test
-	public void testPromise_liftAForList() {
+	public void testPromise_liftAForList() throws InterruptedException {
 		Promise<String> page1 = asyncGet(URL1);
 		Promise<String> page2 = asyncGet(URL2);
 		Promise<String> page3 = asyncGet(URL3);
@@ -117,12 +117,21 @@ public class PromiseTest {
 		assertEquals(PAGE1 + "," + PAGE2 + "," + PAGE3, r);
 
 		Currying.F1<List<String>, Promise<String>> f2 = Composing.__(
+				// List<Promise<String>>
 				map(PromiseTest::asyncGet),
+				// List<Promise<String>>
 				map(Promises.fmap(split)),
+				// Promise<List<String>>
 				Promises.liftA(flatten),
-				Promises.fmap(Composing.__(unique, sort, join)));
-		String result2 = f2.apply(asList(URL1, URL2, URL3)).await();
-		System.out.println(result2);
+				// Promise<List<String>> -> Promise<List<String>> -> Promise<String>
+				Promises.fmap(Composing.__(unique, sort, join))
+		);
+		String result2 = f2.apply(asList(URL1, URL2, URL3))
+				.onSuccess(s -> System.out.println("S*" + Thread.currentThread().getName() + ":" + s))
+				.onFailure(s -> System.out.println("F*" + Thread.currentThread().getName() + ":" + s))
+				.await();
+		Thread.sleep(1000);
+		assertEquals("Fava,Functional,Hello,I,in,is,Java,love,programming,world", result2);
 	}
 
 	/**
@@ -181,17 +190,33 @@ public class PromiseTest {
 	}
 
 	@Test
-	public void testPromise_async() {
+	public void testPromise_async() throws InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder(URI.create("https://google.com")).build();
 		HttpClient client = HttpClient.newBuilder().build();
 		Callable<String> action = () -> client.send(request, HttpResponse.BodyHandlers.ofString()).body();
 
 		assertNotNull(
-				Promise.fulfillInAsync(action, Executors.newSingleThreadExecutor())
+				Promise.fulfillInAsync(action)
 						.onSuccess(Assert::assertNotNull)
 						.onFailure(Assert::assertNull)
 						.await()
 		);
+
+		Promise<String> promiseResult = Promise.fulfillInAsync(action);
+
+		AtomicInteger counter = new AtomicInteger(0);
+		long start = System.nanoTime();
+		for (int i = 0; i < 10; i++) {
+			new Thread(() -> {
+				String value = promiseResult.await();
+				long end = System.nanoTime();
+				System.out.println("Time elapsed: " + (end - start) / 1_000_000 + " ms");
+				assertNotNull(value);
+				counter.incrementAndGet();
+			}).start();
+		}
+		Thread.sleep(1000);
+		assertEquals(10, counter.get());
 	}
 
 	/**
@@ -200,6 +225,7 @@ public class PromiseTest {
 	 */
 	private static class HttpPromise extends Promise<String> {
 		private static final HashMap<String, String> pages = new HashMap<>();
+		private static int COUNT = 0;
 
 		static {
 			pages.put(URL1, PAGE1);
@@ -211,7 +237,7 @@ public class PromiseTest {
 		}
 
 		public HttpPromise(final String url) {
-			final long interval = 100;
+			final long interval = 10;
 			// Simulate asynchronous HTTP request of 100 ms with thread.
 			new Thread(() -> {
 				try {
@@ -224,7 +250,7 @@ public class PromiseTest {
 				} else {
 					HttpPromise.this.notifyFailure(new Exception("404 NOT FOUND"));
 				}
-			})
+			}, "PROMISE-" + ++COUNT)
 					.start();
 		}
 	}

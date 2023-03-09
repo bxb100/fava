@@ -2,10 +2,9 @@
 
 JDK 11+
 
-
 # Java Lambda: Method Reference
 
-[from](https://dzone.com/articles/java-lambda-method-reference)
+[Copy From Article](https://dzone.com/articles/java-lambda-method-reference)
 
 | Type                                                                        | Syntax                          | Lambda                                                                         |
 |:----------------------------------------------------------------------------|:--------------------------------|:-------------------------------------------------------------------------------|
@@ -17,6 +16,7 @@ JDK 11+
 # Lambda Examples
 
 ```java
+
 @FunctionalInterface
 public interface IF2<T1, T2, R> {
 	R apply(T1 t1, T2 t2);
@@ -25,17 +25,13 @@ public interface IF2<T1, T2, R> {
 
 means two input parameters and one output parameter
 
-===> `(a, b) -> a.split(b)`
+`(a, b) -> a.split(b)1` equals `IF2<String, String, String[]> if2 = String::split`
 
-===> `String::split`
+## Other
 
-===> `IF2<String, String, String[]> if2 = String::split`
-
-## Other modules
-
-* [vavr](https://github.com/vavr-io/vavr) not recommend
+* [vavr](https://github.com/vavr-io/vavr) handy functional library
 * [java-promise](https://github.com/riversun/java-promise)
-
+* [versy useful Future vs Promise summarise](https://stackoverflow.com/questions/14541975/whats-the-difference-between-a-future-and-a-promise)
 
 # Test with Spock
 
