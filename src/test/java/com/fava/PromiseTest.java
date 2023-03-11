@@ -11,10 +11,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.fava.data.Lists.map;
 import static com.fava.data.Strings.*;
@@ -219,6 +221,38 @@ public class PromiseTest {
 		assertEquals(10, counter.get());
 	}
 
+	@Test
+	public void testPromise_spawn_batch() {
+		Currying.F1<Iterable<Callable<Integer>>, List<Promise<Integer>>> fn =
+				Promises.trySpawnBatch(100);
+		List<Callable<Integer>> tasks = new ArrayList<>();
+		for (int i = 0; i < 1000; i++) {
+			int tempI = i;
+			tasks.add(() -> {
+				Thread.sleep(300);
+				return tempI;
+			});
+		}
+		long start = System.nanoTime();
+		// It should be 1000 / 100 = 10 batches.
+		List<Promise<Integer>> promises = fn.apply(tasks);
+		// join all result into a single list.
+		List<Integer> result = promises.stream()
+				.map(Promise::await)
+				.collect(Collectors.toList());
+		long end = System.nanoTime();
+
+		// elapsed time should be around 3000 ms.
+		Assert.assertTrue((end - start) / 1_000_000 < 3100);
+		for (int i = 0; i < result.size(); i++) {
+			Assert.assertEquals(i, result.get(i).intValue());
+		}
+		Assert.assertEquals(1000, result.size());
+
+		System.out.println("Time elapsed: " + (end - start) / 1_000_000 + " ms");
+		System.out.println("Result size: " + result.size());
+	}
+
 	/**
 	 * Fake HTTP promise for test purpose. It either returns a pre-configured web
 	 * page asynchronously or throws a 404 NOT FOUND exception.
@@ -254,4 +288,5 @@ public class PromiseTest {
 					.start();
 		}
 	}
+
 }

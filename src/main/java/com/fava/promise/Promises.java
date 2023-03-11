@@ -7,7 +7,11 @@ import com.fava.data.Lists;
 import com.fava.promise.Promise.Listener;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * A set of functions for {@link Promise}.
@@ -201,6 +205,24 @@ public class Promises {
 	 */
 	public static <T> IF1<Promise<T>, T> getValue() {
 		return Promise::getValue;
+	}
+
+	public static <V, I extends Iterable<Callable<V>>> Currying.F1<I, List<Promise<V>>> trySpawnBatch(
+			int maxIORequests
+	) {
+		Semaphore semaphore = new Semaphore(maxIORequests);
+		IF1<I, List<Promise<V>>> res = callables -> StreamSupport.stream(
+				callables.spliterator(),
+				false
+		).map(c -> Promise.fulfillInAsync(() -> {
+			semaphore.acquire();
+			// heavy IO operation
+			V v = c.call();
+			semaphore.release();
+			return v;
+		})).collect(Collectors.toList());
+		// to stream
+		return Currying.curry(res);
 	}
 
 	private <T> Listener<T> builderCommonListener() {

@@ -7,10 +7,7 @@ import com.fava.monad.Monad;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
@@ -26,12 +23,15 @@ import java.util.function.Consumer;
  * @author dagang.wei (weidagang@gmail.com)
  */
 public class Promise<T> implements Functor<T>, Monad<T> {
-	private static final boolean USE_COMMON_POOL =
-			(ForkJoinPool.getCommonPoolParallelism() > 1);
-	private static final Executor ASYNC_POOL = USE_COMMON_POOL ?
-			ForkJoinPool.commonPool() : t -> new Thread(t).start();
+	private static final ExecutorService ASYNC_POOL;
 	// TODO: this barrier may be not necessary.
 	private static final byte[] lock = new byte[0];
+
+	static {
+		int processors = Runtime.getRuntime().availableProcessors();
+		ASYNC_POOL = Executors.newFixedThreadPool(processors * 100);
+	}
+
 	private final Deque<Thread> threads = new ConcurrentLinkedDeque<>();
 	protected T value;
 	protected Exception exception;
@@ -112,6 +112,7 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	 * @return the value if succeeded, or null if failed.
 	 */
 	public T await() {
+		// TODO: need run in ForkJoinPool?
 		if (state != State.PENDING) {
 			return state == State.SUCCEEDED ? value : null;
 		}
@@ -125,6 +126,10 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 		threads.remove();
 
 		return state == State.SUCCEEDED ? value : null;
+	}
+
+	public T get() {
+		return await();
 	}
 
 	/**
