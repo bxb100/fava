@@ -1,6 +1,10 @@
+
 # Fava - advanced functional Java
 
 JDK 11+
+
+[Using Java Profile](https://www.ej-technologies.com/products/jprofiler/overview.html)
+![JProfile](https://user-images.githubusercontent.com/20685961/224734431-6f2da39a-6ef3-4cb2-b0d2-6e042984ca4a.png)
 
 # Java Lambda: Method Reference
 
