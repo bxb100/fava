@@ -6,6 +6,7 @@ import com.fava.monad.Monad;
 
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.LockSupport;
@@ -35,7 +36,7 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	private final Deque<Thread> threads = new ConcurrentLinkedDeque<>();
 	protected T value;
 	protected Exception exception;
-	protected ArrayList<Listener<T>> listeners = new ArrayList<>();
+	protected List<Listener<T>> listeners = new ArrayList<>();
 	private volatile State state = State.PENDING;
 
 	/**
@@ -72,30 +73,12 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	}
 
 	public Promise<T> onSuccess(Consumer<T> consumer) {
-		addListener(new Listener<>() {
-			@Override
-			public void onSuccess(T value) {
-				consumer.accept(value);
-			}
-
-			@Override
-			public void onFailure(Exception exception) {
-			}
-		});
+		addListener(consumer, _e -> {});
 		return this;
 	}
 
 	public Promise<T> onFailure(Consumer<Exception> consumer) {
-		addListener(new Listener<>() {
-			@Override
-			public void onSuccess(T value) {
-			}
-
-			@Override
-			public void onFailure(Exception exception) {
-				consumer.accept(exception);
-			}
-		});
+		addListener(_v -> {}, consumer);
 		return this;
 	}
 
@@ -113,9 +96,13 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	 */
 	public T await() {
 		// TODO: need run in ForkJoinPool?
-		if (state != State.PENDING) {
-			return state == State.SUCCEEDED ? value : null;
+		synchronized (lock) {
+			// In case notifyXxx executed before await
+			if (state != State.PENDING) {
+				return state == State.SUCCEEDED ? value : null;
+			}
 		}
+
 		// support multiple threads waiting
 		threads.add(Thread.currentThread());
 

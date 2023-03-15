@@ -6,6 +6,7 @@ import com.fava.Functions.IF2;
 import com.fava.data.Lists;
 import com.fava.promise.Promise.Listener;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -41,8 +42,8 @@ public class Promises {
 
 	public static <T1, T2, R> Currying.F2<Promise<T1>, Promise<T2>, Promise<R>> liftA(final Currying.F2<T1, T2, R> f) {
 		return new Currying.F2<>() {
-			private Exception e = null;
-			private T1 value1;
+			private WeakReference<T1> value1 = new WeakReference<>(null);
+			private WeakReference<Exception> e = new WeakReference<>(null);
 
 			@Override
 			public Promise<R> apply(Promise<T1> promiseT1, Promise<T2> promiseT2) {
@@ -52,11 +53,11 @@ public class Promises {
 				CountDownLatch cdl = new CountDownLatch(1);
 
 				promiseT1.addListener(v -> {
+					value1 = new WeakReference<>(v);
 					cdl.countDown();
-					value1 = v;
 				}, exception -> {
+					e = new WeakReference<>(exception);
 					cdl.countDown();
-					e = exception;
 				});
 
 				promiseT2.addListener(v -> {
@@ -65,14 +66,18 @@ public class Promises {
 					} catch (InterruptedException ex) {
 						throw new RuntimeException(ex);
 					}
-					result.notifySuccess(f.apply(value1, v));
+					if (e.get() == null) {
+						result.notifySuccess(f.apply(value1.get(), v));
+					} else {
+						result.notifyFailure(e.get());
+					}
 				}, exception -> {
 					try {
 						cdl.await();
 					} catch (InterruptedException ex) {
 						throw new RuntimeException(ex);
 					}
-					result.notifyFailure(e == null ? exception : e);
+					result.notifyFailure(e.get() == null ? exception : e.get());
 				});
 				return result;
 			}

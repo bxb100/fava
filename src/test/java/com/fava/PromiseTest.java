@@ -22,8 +22,7 @@ import static com.fava.data.Lists.map;
 import static com.fava.data.Strings.*;
 import static com.fava.promise.Promises.liftA;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class PromiseTest {
 	private static final String URL1 = "http://www.a.com/a.htm";
@@ -95,6 +94,17 @@ public class PromiseTest {
 		Currying.F2<Promise<String>, Promise<String>, Promise<String>> concatPromise = liftA(concat());
 		Promise<String> page1AndPage2 = concatPromise.apply(page1, page2);
 		assertEquals("Hello worldI love programming in Java", page1AndPage2.await());
+
+		Promise<String> exceptionPromise = Promise.failure(new RuntimeException("excepted exception"));
+		assertNull(concatPromise.apply(exceptionPromise, page1)
+				.onSuccess(v -> fail("Should not be called"))
+				.onFailure(e -> assertEquals("excepted exception", e.getMessage()))
+				.await());
+		assertNull(concatPromise.apply(page1, exceptionPromise).await());
+		assertNull(concatPromise.apply(page1, exceptionPromise)
+				.onSuccess(v -> fail("Should not be called"))
+				.onFailure(e -> assertEquals("excepted exception", e.getMessage()))
+				.await());
 	}
 
 	/**
