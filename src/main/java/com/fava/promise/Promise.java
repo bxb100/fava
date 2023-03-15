@@ -21,6 +21,10 @@ import java.util.function.Consumer;
  * asynchronous values, such as asynchronous HTTP response or asynchronous
  * database query result.
  *
+ * <p>
+ * <strong>THIS IS JUST DEMO FOR PROMISE, YOU SHOULD USE </strong> {@link CompletableFuture}
+ * </p>
+ *
  * @author dagang.wei (weidagang@gmail.com)
  */
 public class Promise<T> implements Functor<T>, Monad<T> {
@@ -73,12 +77,14 @@ public class Promise<T> implements Functor<T>, Monad<T> {
 	}
 
 	public Promise<T> onSuccess(Consumer<T> consumer) {
-		addListener(consumer, _e -> {});
+		addListener(consumer, _e -> {
+		});
 		return this;
 	}
 
 	public Promise<T> onFailure(Consumer<Exception> consumer) {
-		addListener(_v -> {}, consumer);
+		addListener(_v -> {
+		}, consumer);
 		return this;
 	}
 
