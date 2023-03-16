@@ -36,6 +36,7 @@ means two input parameters and one output parameter
 * [vavr](https://github.com/vavr-io/vavr) handy functional library
 * [java-promise](https://github.com/riversun/java-promise)
 * [versy useful Future vs Promise summarise](https://stackoverflow.com/questions/14541975/whats-the-difference-between-a-future-and-a-promise)
+* [jOOλ](https://github.com/jOOQ/jOOL)
 
 # Test with Spock
 
